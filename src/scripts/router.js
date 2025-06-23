@@ -18,11 +18,19 @@ function router() {
       case '#/register':
         window.location.hash = '#/';
         break;
-      default:
+      case '#/':
+      case '':
         Presenter.showHomePage();
+        break;
+      default:
+        // <-- PERUBAHAN DI SINI
+        // Jika URL tidak dikenali, tampilkan halaman Not Found
+        Presenter.showNotFoundPage();
         break;
     }
   } else {
+    // Logika untuk user yang belum login tidak perlu diubah,
+    // default-nya ke halaman login sudah benar.
     switch (path) {
       case '#/register':
         Presenter.showRegisterPage();

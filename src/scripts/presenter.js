@@ -1,15 +1,32 @@
 // src/scripts/presenter.js
+
 import Api from './api.js';
 import View from './view.js';
+import StoryDb from './utils/db.js';
+import { requestNotificationPermission, configurePushSubscription } from './utils/notification.js'; // <-- PERUBAHAN 1: Import baru
 
 const Presenter = {
+  // PERUBAHAN 2: showHomePage sekarang meneruskan handler untuk tombol hapus cache
   async showHomePage() {
     try {
       const token = sessionStorage.getItem('token');
-      const stories = await Api.getStories(token);
-      View.renderHomePage(stories);
+      const storiesFromApi = await Api.getStories(token);
+      await StoryDb.putAllStories(storiesFromApi);
+      View.renderHomePage(storiesFromApi, this.handleClearCache.bind(this)); // <-- Meneruskan handler
+      console.log('Data ditampilkan dari API');
     } catch (error) {
-      View.renderError(error.message, true);
+      console.log("Gagal mengambil data dari API. Mencoba dari database lokal.", error);
+      try {
+        const storiesFromDb = await StoryDb.getAllStories();
+        if (!storiesFromDb || storiesFromDb.length === 0) {
+          View.renderError("Tidak ada data yang tersimpan untuk ditampilkan saat offline.", true);
+        } else {
+          View.renderHomePage(storiesFromDb, this.handleClearCache.bind(this)); // <-- Meneruskan handler
+          console.log('Data ditampilkan dari IndexedDB');
+        }
+      } catch (dbError) {
+        View.renderError(`Gagal mengambil data dari mana pun: ${dbError.message}`, true);
+      }
     }
   },
 
@@ -85,6 +102,41 @@ const Presenter = {
     View.renderAddPage(handleAdd);
   },
 
+  // <-- PERUBAHAN 3: Fungsi baru untuk menangani Halaman Not Found
+  showNotFoundPage() {
+    View.renderNotFoundPage();
+  },
+
+  // <-- PERUBAHAN 4: Fungsi baru untuk menangani logika klik tombol Hapus Cache
+  async handleClearCache(event) {
+    event.preventDefault();
+    try {
+      await StoryDb.clearAllStories();
+      alert('Cache cerita offline telah berhasil dihapus!');
+      location.reload(); // Reload halaman untuk melihat efeknya
+    } catch (error) {
+      alert('Gagal menghapus cache.');
+      console.error(error);
+    }
+  },
+
+  // <-- PERUBAHAN 5: Fungsi baru untuk menangani logika klik tombol Notifikasi
+  async handleEnableNotification(event) {
+    event.preventDefault();
+    try {
+      const permission = await requestNotificationPermission();
+      if (permission === 'granted') {
+        await configurePushSubscription();
+        alert('Notifikasi berhasil diaktifkan!');
+      } else {
+        alert('Izin untuk notifikasi tidak diberikan.');
+      }
+    } catch (error) {
+      console.error('Gagal mengaktifkan notifikasi', error);
+      alert('Gagal mengaktifkan notifikasi.');
+    }
+  },
+
   handleLogout(event) {
     if (event) event.preventDefault();
     sessionStorage.clear();
@@ -92,10 +144,11 @@ const Presenter = {
     window.location.hash = '#/login';
   },
 
+  // <-- PERUBAHAN 6: updateNav sekarang meneruskan handler untuk tombol notifikasi
   updateNav() {
     const isLoggedIn = !!sessionStorage.getItem('token');
     const userName = sessionStorage.getItem('userName');
-    View.updateNavLinks(isLoggedIn, userName, this.handleLogout);
+    View.updateNavLinks(isLoggedIn, userName, this.handleLogout.bind(this), this.handleEnableNotification.bind(this));
   }
 };
 

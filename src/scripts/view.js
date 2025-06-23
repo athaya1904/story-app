@@ -1,7 +1,7 @@
 // src/scripts/view.js
 
 import L from 'leaflet';
-import { transitionHelper } from './utils/transition.js'; // <-- PERUBAHAN 1: Import helper
+import { transitionHelper } from './utils/transition.js';
 
 const View = {
   mainContent: document.querySelector("#main-content"),
@@ -9,7 +9,6 @@ const View = {
   activeStream: null,
 
   // --- Render Tampilan Umum ---
-  // PERUBAHAN 2: Fungsi renderPage sekarang menggunakan transitionHelper
   renderPage(html, afterRenderCallback) {
     transitionHelper({
       updateDOM: () => {
@@ -21,14 +20,17 @@ const View = {
     });
   },
 
-  updateNavLinks(isLoggedIn, userName, logoutCallback) {
+  // <-- PERUBAHAN 1: Menambah parameter 'notifHandler' untuk tombol notifikasi
+  updateNavLinks(isLoggedIn, userName, logoutCallback, notifHandler) {
     if (isLoggedIn) {
       this.nav.innerHTML = `
         <a href="#/">Beranda</a>
         <a href="#/add">Tambah Cerita</a>
+        <button id="notif-button" class="form-button" style="margin-right: 15px;">Aktifkan Notifikasi</button>
         <a href="#" id="logout-button">Logout (${userName})</a>
       `;
       document.querySelector('#logout-button').addEventListener('click', logoutCallback);
+      document.querySelector('#notif-button').addEventListener('click', notifHandler); // <-- Menghubungkan tombol notifikasi
     } else {
       this.nav.innerHTML = `<a href="#/login">Login</a><a href="#/register">Register</a>`;
     }
@@ -64,7 +66,8 @@ const View = {
     });
   },
 
-  renderHomePage(stories) {
+  // <-- PERUBAHAN 2: Menambah parameter 'clearCacheHandler' untuk tombol hapus data
+  renderHomePage(stories, clearCacheHandler) {
     let storyItems = '<p>Belum ada cerita atau gagal memuat data.</p>';
     if (stories && stories.length > 0) {
       storyItems = stories.map(story => `
@@ -79,14 +82,21 @@ const View = {
       `).join('');
     }
     
+    // <-- PERUBAHAN 3: Menambahkan tombol 'Hapus Cache' ke dalam HTML
     const html = `
-      <div class="page-header"><h2>Daftar Cerita</h2></div>
+      <div class="page-header">
+        <h2>Daftar Cerita</h2>
+        <button id="clear-cache-button" class="form-button" style="margin-top: 1rem;">Hapus Cache Cerita Offline</button>
+      </div>
       <div id="story-list" class="story-list">${storyItems}</div>
       <h2>Peta Lokasi Cerita</h2>
       <div id="map" style="height: 400px; width: 100%;"></div>
     `;
 
     this.renderPage(html, () => {
+      // <-- PERUBAHAN 4: Menghubungkan tombol hapus cache
+      document.querySelector('#clear-cache-button').addEventListener('click', clearCacheHandler);
+
       if (stories && stories.length > 0) {
         const map = L.map('map').setView([-2.5489, 118.0149], 5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -114,6 +124,12 @@ const View = {
         document.querySelector('#add-story-form').addEventListener('submit', addHandler);
       });
   },
+  
+  // Fungsi renderNotFoundPage untuk kriteria opsional
+  renderNotFoundPage() {
+    const html = `<div class="page-header"><h2>404 - Halaman Tidak Ditemukan</h2><p>Maaf, halaman yang Anda cari tidak ada.</p></div>`;
+    this.renderPage(html);
+  },
 
   renderError(message, isLoggedIn) {
     if (isLoggedIn) {
@@ -123,7 +139,7 @@ const View = {
     }
   },
   
-  // Helper-helper internal View
+  // Helper-helper internal View (tidak ada perubahan)
   _initCamera() {
       const video = document.querySelector('#camera-preview');
       navigator.mediaDevices.getUserMedia({ video: true, audio: false })
