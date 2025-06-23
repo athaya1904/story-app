@@ -1,0 +1,282 @@
+@keyframes full-slide-from-right {
+    from { transform: translateX(100%); }
+}
+
+@keyframes full-slide-to-left {
+    to { transform: translateX(-100%); }
+}
+
+::view-transition-old(root) {
+    animation: 300ms ease-out both full-slide-to-left;
+}
+
+::view-transition-new(root) {
+    animation: 300ms ease-out both full-slide-from-right;
+}
+
+/* Animasi untuk desktop (lebih kompleks): Fade + Slide kecil */
+@media screen and (min-width: 601px) {
+    @keyframes fade-in { from { opacity: 0; } }
+    @keyframes fade-out { to { opacity: 0; } }
+    @keyframes slide-to-left { to { transform: translateX(-30px); } }
+    @keyframes slide-from-right { from { transform: translateX(30px); } }
+
+    ::view-transition-old(root) {
+        animation:
+            fade-out 90ms cubic-bezier(0.4, 0, 1, 1) both,
+            slide-to-left 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    ::view-transition-new(root) {
+        animation:
+            fade-in 210ms cubic-bezier(0, 0, 0.2, 1) 90ms both,
+            slide-from-right 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    background-color: #f4f7f9;
+    color: #333;
+}
+
+header {
+    background: #2c3e50;
+    color: #ecf0f1;
+    padding: 1rem 2rem;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    view-transition-name: header; /* <-- Pisahkan header dari animasi utama */
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+header nav {
+    margin-top: 0.5rem;
+}
+
+header nav a {
+    color: #ecf0f1;
+    margin: 0 15px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+header nav a:hover {
+    color: #3498db;
+}
+
+main {
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    background: #ecf0f1;
+    color: #7f8c8d;
+    margin-top: 2rem;
+    border-top: 1px solid #ddd;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+}
+
+.skip-link {
+    position: absolute;
+    top: -50px;
+    left: 0;
+    background: #3498db;
+    color: white;
+    padding: 10px 15px;
+    z-index: 1100;
+    transition: top 0.3s;
+    text-decoration: none;
+    border-bottom-right-radius: 8px;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+.story-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.story-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.story-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.story-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.story-info {
+    padding: 1rem;
+}
+
+.story-name {
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.story-date {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    margin-bottom: 0.75rem;
+}
+
+.auth-form,
+.add-story-form {
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.form-button {
+    padding: 0.8rem 1rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #3498db;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.form-button:hover:not(:disabled) {
+    background-color: #2980b9;
+}
+
+.form-button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.camera-container {
+    position: relative;
+    width: 100%;
+    background-color: #000;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#camera-preview {
+    width: 100%;
+    display: block;
+}
+
+#capture-button {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    main {
+        padding: 1rem;
+    }
+
+    header {
+        padding: 1rem;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .story-list {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-form,
+    .add-story-form {
+        padding: 1.5rem;
+    }
+}
